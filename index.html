@@ -405,7 +405,7 @@
             </div>
         </div>
 
-        <!-- NEW EXERCISE SECTIONS FROM GOOGLE DOC -->
+        <!-- EXERCISE SECTIONS FROM GOOGLE DOC -->
         <div class="exercise-section">
             <h3 style="color: var(--primary-dark);">Phase 1: Interact with information and subjects on the website</h3>
             <div class="exercise-item">
@@ -676,13 +676,15 @@
         }
 
         const params = new URLSearchParams();
-        params.append("StudentName", state.name); 
+        // Cập nhật key gửi đi để khớp lại với Apps Script Tiếng Việt gốc của bạn 
+        // để khắc phục việc chỉ nhận ID
+        params.append("TenHocSinh", state.name); 
         params.append("ID", state.id);
-        params.append("Action", action); 
-        params.append("Detail", detail);
+        params.append("HanhDong", action); 
+        params.append("ChiTiet", detail);
         
         if(finishTime) {
-            params.append("Duration", finishTime);
+            params.append("ThoiGianLamBai", finishTime);
         }
 
         fetch(GOOGLE_SCRIPT_URL, {
