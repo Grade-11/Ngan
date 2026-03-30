@@ -23,7 +23,7 @@
         
         /* LOGIN & LAYOUT */
         .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.9); display: flex; align-items: center; justify-content: center; z-index: 9999; backdrop-filter: blur(5px); }
-        .login-box { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); max-width: 500px; width: 90%; text-align: center; border-top: 5px solid var(--danger); }
+        .login-box { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); max-width: 500px; width: 90%; text-align: center; border-top: 5px solid var(--danger); position: relative; }
         .login-box h2 { color: var(--danger); margin-bottom: 10px; font-size: 1.8em; }
         .form-group { margin-bottom: 20px; text-align: left; }
         .form-group label { display: block; margin-bottom: 8px; font-weight: 600; }
@@ -140,6 +140,7 @@
     <div class="login-box">
         <div style="font-size: 50px; margin-bottom: 10px;">🦠</div>
         <h2 style="font-family: 'Noto Sans', sans-serif; font-size: 40px; font-weight: 900; margin-bottom: 15px; letter-spacing: 1px;"><span style="color: black;">PANDEMIC</span> <span style="color: var(--danger);">EXPLORER</span></h2>
+        
         <p style="color: #64748b; margin-bottom: 25px;">Enter your information to access the system.</p>
         <form id="loginForm">
             <div class="form-group">
@@ -150,7 +151,7 @@
                 <label>Identification Code (ID)</label>
                 <input type="text" id="studentID" placeholder="e.g., STU001" required>
             </div>
-            <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 25px;">
+            <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 25px; margin-bottom: 15px;">
                 <button type="button" class="login-btn-option option-home" onclick="handleLogin(1)">
                     <span style="font-size: 24px;">🏠</span> 
                     <span>You are a <b>researcher</b>, click here to conduct studies</span>
@@ -159,6 +160,14 @@
                     <span style="font-size: 24px;">⚔️</span> 
                     <span>You are experienced, click here to <b>fight the pandemic</b></span>
                 </button>
+            </div>
+            
+            <!-- BONG BÓNG CHAT AI ĐĂNG NHẬP ĐÃ CHỈNH SỬA -->
+            <div id="loginAiBubble" style="background: #f8fafc; border: 1px solid #cbd5e1; padding: 12px 15px; border-radius: 12px; text-align: left; display: flex; gap: 12px; align-items: center; font-size: 0.9em;">
+                <div style="font-size: 28px;">🤖</div>
+                <div style="color: #475569; line-height: 1.4;">
+                    <b>Dr. GeoBot:</b> Hello! Please select the correct role above. If you are studying at home, choose <b>Researcher</b>!
+                </div>
             </div>
         </form>
     </div>
@@ -932,7 +941,8 @@
     let state = {
         name: '', id: '', startTime: null, mode: 1,
         currentTab: 'tab1', tabsDone: {t1:false, t2:false, t3:false, t4:false, t5:false},
-        t1_gen: 0, t1_data: []
+        t1_gen: 0, t1_data: [],
+        aiWelcome: { t1: false, t2: false } // Biến theo dõi AI đã chào chưa
     };
     
     let charts = { spread: null, prevention: null, vaccine: null };
@@ -1052,6 +1062,22 @@
         document.getElementById(tabId).classList.add('active');
         document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
         state.currentTab = tabId;
+
+        // BẬT AI CHÀO MỪNG KHI VÀO TAB MỚI LẦN ĐẦU TIÊN
+        if (state.mode === 1) {
+            if (tabId === 'tab1' && !state.aiWelcome.t1) {
+                state.aiWelcome.t1 = true;
+                setTimeout(() => {
+                    sendBotMessage("🤖 **Dr. GeoBot:** Welcome, Researcher! Your mission today is to interact with infection models, record data, and answer questions to uncover new knowledge. Let's start with Tab 1!", true);
+                }, 1500);
+            } 
+            else if (tabId === 'tab2' && !state.aiWelcome.t2) {
+                state.aiWelcome.t2 = true;
+                setTimeout(() => {
+                    sendBotMessage("🤖 **Dr. GeoBot:** Excellent, we are now on Tab 2! Here we will simulate the real-world spread of a virus.\n\nLooking at the scenario above, input the F0, R0, and Cycle values into the table. Then click CALCULATE to observe the graph!\n\nNote: There are multiple exercise phases, and you must answer the final questions of each phase **correctly** to unlock the next one!", true);
+                }, 1000);
+            }
+        }
     }
 
     // ==========================================
@@ -1233,6 +1259,23 @@
     }
 
     function submitPhase1() {
+        const q4 = document.getElementById('t2_q4').value.trim();
+        const q4_lower = q4.toLowerCase();
+        
+        // KIỂM TRA ĐÁP ÁN CÂU CHỐT (Q4)
+        if (!q4_lower.includes("geometric") && !q4_lower.includes("cấp số nhân")) {
+            const resDiv = document.getElementById('ex_result_t2_p1');
+            resDiv.style.display = 'block';
+            resDiv.className = 'inline-alert alert-error'; 
+            resDiv.style.backgroundColor = '#fee2e2'; 
+            resDiv.style.borderColor = '#fca5a5';
+            resDiv.style.color = '#991b1b';
+            resDiv.innerHTML = `❌ Incorrect answer for Question 4. Please check Dr. GeoBot's message!`;
+            
+            sendBotMessage("🤖 **Dr. GeoBot:** Your answer for Question 4 (the final question of Phase 1) is incorrect. Please try again! \n\n*Hint: What do we call a sequence where each term after the first is found by multiplying the previous one by a constant? (Geometric...)*", true);
+            return; // Dừng lại, không mở khóa Phase 2
+        }
+
         const q1 = document.getElementById('t2_q1').value || "?";
         const q2_diff = document.getElementById('t2_q2_diff').value || "?";
         const q2_meaning = document.querySelector('input[name="t2_q2_meaning"]:checked') ? document.querySelector('input[name="t2_q2_meaning"]:checked').value : "?";
@@ -1240,7 +1283,6 @@
         const q3_3 = document.getElementById('t2_q3_3').value || "?";
         const q3_4 = document.getElementById('t2_q3_4').value || "?";
         const q3_5 = document.getElementById('t2_q3_5').value || "?";
-        const q4 = document.getElementById('t2_q4').value || "?";
 
         const detail = `Tab 2 Phase 1: Q1=${q1}, Q2_Diff=${q2_diff}, Q2_Mean=${q2_meaning}, Q3=[5, ${q3_2}, ${q3_3}, ${q3_4}, ${q3_5}], Q4=${q4}`;
         logAction('Submit Tab 2 Phase 1', detail);
@@ -1252,6 +1294,8 @@
         resDiv.style.borderColor = '#7dd3fc';
         resDiv.style.color = '#0284c7';
         resDiv.innerHTML = `✅ Phase 1 answers submitted successfully. Phase 2 is now unlocked!`;
+        
+        sendBotMessage("🤖 **Dr. GeoBot:** Excellent! You answered Phase 1 correctly. Let's continue deciphering Phase 2 appearing below!", true);
 
         // Unlock Phase 2
         document.getElementById('t2_phase2_container').style.display = 'block';
@@ -1261,6 +1305,31 @@
     }
     
     function submitPhase2() {
+        const q7_eqs = [
+            document.getElementById('t2_q7_eq1').value,
+            document.getElementById('t2_q7_eq2').value,
+            document.getElementById('t2_q7_eq3').value,
+            document.getElementById('t2_q7_eq4').value,
+            document.getElementById('t2_q7_eq5').value
+        ];
+        
+        // KIỂM TRA ĐÁP ÁN CÂU CHỐT (Q7) - Phải chứa đủ 5 option tương ứng với khai triển cấp số nhân
+        const correctEqs = ["u1+", "u1.q+", "u1.q2+", "u1.q3+", "u1.q4"];
+        const isQ7Correct = correctEqs.every(val => q7_eqs.includes(val));
+
+        if (!isQ7Correct) {
+            const resDiv = document.getElementById('ex_result_t2_p2');
+            resDiv.style.display = 'block';
+            resDiv.className = 'inline-alert alert-error'; 
+            resDiv.style.backgroundColor = '#fee2e2'; 
+            resDiv.style.borderColor = '#fca5a5';
+            resDiv.style.color = '#991b1b';
+            resDiv.innerHTML = `❌ Incorrect answer for Question 7. Please check Dr. GeoBot's message!`;
+            
+            sendBotMessage("🤖 **Dr. GeoBot:** Your answer for Question 7 (the final question of Phase 2) is incorrect. Please try again! \n\n*Hint: Look at the results from Question 6, replace S_5 using u1 and q, then arrange them in increasing order of q's exponent: from u1 (no q), to u1.q^1, u1.q^2... Note that the final term does not have a + sign at the end.*", true);
+            return; // Dừng lại, không mở khóa Phase 3
+        }
+
         const u1 = document.getElementById('t2_q5_u1').value || "?";
         const q = document.getElementById('t2_q5_q').value || "?";
         
@@ -1280,15 +1349,7 @@
             document.getElementById('t2_q7_5').value || "?"
         ];
 
-        const q7_2 = [
-            document.getElementById('t2_q7_eq1').value || "?",
-            document.getElementById('t2_q7_eq2').value || "?",
-            document.getElementById('t2_q7_eq3').value || "?",
-            document.getElementById('t2_q7_eq4').value || "?",
-            document.getElementById('t2_q7_eq5').value || "?"
-        ];
-
-        const detail = `Tab 2 Phase 2: Q5(u1=${u1}, q=${q}), Q6=[${q6}], Q7_1=[${q7_1}], Q7_2=[${q7_2}]`;
+        const detail = `Tab 2 Phase 2: Q5(u1=${u1}, q=${q}), Q6=[${q6}], Q7_1=[${q7_1}], Q7_2=[${q7_eqs}]`;
         logAction('Submit Tab 2 Phase 2', detail);
 
         const resDiv = document.getElementById('ex_result_t2_p2');
@@ -1298,6 +1359,8 @@
         resDiv.style.borderColor = '#d8b4fe';
         resDiv.style.color = '#7e22ce';
         resDiv.innerHTML = `✅ Phase 2 answers submitted successfully. Phase 3 is now unlocked!`;
+        
+        sendBotMessage("🤖 **Dr. GeoBot:** Spot on! You have completed Phase 2. Keep it up, we are just one step away from finding the general formula in Phase 3!", true);
 
         // Unlock Phase 3
         document.getElementById('t2_phase3_container').style.display = 'block';
@@ -1307,9 +1370,24 @@
     }
 
     function submitPhase3() {
+        const q10 = document.querySelector('input[name="t2_q10"]:checked') ? document.querySelector('input[name="t2_q10"]:checked').value : "?";
+
+        // KIỂM TRA ĐÁP ÁN CÂU CHỐT (Q10) - Điều kiện q != 1
+        if (q10 !== "q_neq_1") {
+            const resDiv = document.getElementById('ex_result_t2_p3');
+            resDiv.style.display = 'block';
+            resDiv.className = 'inline-alert alert-error'; 
+            resDiv.style.backgroundColor = '#fee2e2'; 
+            resDiv.style.borderColor = '#fca5a5';
+            resDiv.style.color = '#991b1b';
+            resDiv.innerHTML = `❌ Incorrect answer for Question 10. Please check Dr. GeoBot's message!`;
+            
+            sendBotMessage("🤖 **Dr. GeoBot:** Your answer for Question 10 (the final question of Phase 3) is incorrect. Please try again! \n\n*Hint: A fraction is only meaningful when its DENOMINATOR is not equal to 0. In the formula for S_n you just found, the denominator is (1 - q), so what must q not be equal to?*", true);
+            return; // Dừng lại, không mở khóa Phase 4
+        }
+
         const q8 = document.querySelector('input[name="t2_q8"]:checked') ? document.querySelector('input[name="t2_q8"]:checked').value : "?";
         const q9 = document.querySelector('input[name="t2_q9"]:checked') ? document.querySelector('input[name="t2_q9"]:checked').value : "?";
-        const q10 = document.querySelector('input[name="t2_q10"]:checked') ? document.querySelector('input[name="t2_q10"]:checked').value : "?";
 
         const detail = `Tab 2 Phase 3: Q8=${q8}, Q9=${q9}, Q10=${q10}`;
         logAction('Submit Tab 2 Phase 3', detail);
@@ -1321,6 +1399,8 @@
         resDiv.style.borderColor = '#fdba74';
         resDiv.style.color = '#c2410c';
         resDiv.innerHTML = `✅ Phase 3 answers submitted successfully. The final part is now unlocked!`;
+        
+        sendBotMessage("🤖 **Dr. GeoBot:** Congratulations on successfully building the mathematical formula yourself! Scroll down to see the final summary.", true);
 
         // Unlock Phase 4
         document.getElementById('t2_phase4_container').style.display = 'block';
@@ -1574,6 +1654,18 @@
     function toggleChat() {
         const el = document.getElementById('chatWindow');
         el.style.display = el.style.display==='flex' ? 'none' : 'flex';
+    }
+
+    // HÀM ĐỂ BOT TỰ GỬI TIN NHẮN (MỚI THÊM)
+    function sendBotMessage(text, autoOpen = true) {
+        const body = document.getElementById('chatBody');
+        const formattedReply = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
+        body.innerHTML += `<div class="msg bot-msg">${formattedReply}</div>`;
+        body.scrollTop = body.scrollHeight;
+        
+        if (autoOpen) {
+            document.getElementById('chatWindow').style.display = 'flex';
+        }
     }
     
     function callGeminiAPI(prompt, systemInstruction) {
