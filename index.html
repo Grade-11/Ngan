@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Digital Learning: Math & Pandemics (Pandemic Explorer)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.0.2"></script>
     <style>
@@ -138,7 +139,7 @@
 <div id="loginOverlay" class="login-overlay">
     <div class="login-box">
         <div style="font-size: 50px; margin-bottom: 10px;">🦠</div>
-        <h2>DISEASE CONTROL STATION</h2>
+        <h2 style="font-family: 'Noto Sans', sans-serif; font-size: 40px; font-weight: 900; margin-bottom: 15px; letter-spacing: 1px;"><span style="color: black;">PANDEMIC</span> <span style="color: var(--danger);">EXPLORER</span></h2>
         <p style="color: #64748b; margin-bottom: 25px;">Enter your information to access the system.</p>
         <form id="loginForm">
             <div class="form-group">
@@ -407,9 +408,6 @@
                 <div id="t2_result" style="text-align: center; margin-top: 30px; display: none;">
                     <div style="font-size: 3em; font-weight: bold; color: var(--danger);" id="totalInfected">0</div>
                     <p>Infected people</p>
-                    <div class="formula-box" style="background: white; border-color: orange; color: #c2410c;">
-                        Sum <span class="math-symbol">S<sub>n</sub> = <frac>u<sub>1</sub>(q<sup>n</sup> - 1)</frac> / <frac>(q - 1)</frac></span>
-                    </div>
                 </div>
                 <canvas id="spreadChart" style="margin-top: 20px; max-height: 200px;"></canvas>
             </div>
@@ -452,7 +450,7 @@
             <div class="exercise-item">
                 <strong>Question 4: Those numbers from Question 3 form a sequence, can you name this sequence with the related one?</strong>
                 <div style="margin-top: 10px;">
-                    Name: <input type="text" class="fill-blank" id="t2_q4" style="width: 250px;" placeholder="e.g. Geometric sequence">
+                    Name: <input type="text" class="fill-blank" id="t2_q4" style="width: 250px;">
                 </div>
             </div>
 
@@ -929,7 +927,7 @@
     const apiKey = ""; 
     
     // Exec URL link
-    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzo3p0ROadBOtAZtXCTKQAnVhKKFNMAbScPnfzW1gu-P7gdnsBqGMzREqiaqKyrg4kE0A/exec'; 
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzch_1jTsXXiAXccEaWhzQpAixQuHXSPd8aDoq2rP-jXz_1JRPAoOgf1dXzSfxcLe5vsw/exec'; 
     
     let state = {
         name: '', id: '', startTime: null, mode: 1,
@@ -949,13 +947,15 @@
         }
 
         const params = new URLSearchParams();
-        params.append("TenHocSinh", state.name); 
+        
+        // Đổi key sang tiếng Anh để khớp chính xác với script lấy dữ liệu (p.StudentName, p.ID, p.Action, p.Detail)
+        params.append("StudentName", state.name); 
         params.append("ID", state.id);
-        params.append("HanhDong", action); 
-        params.append("ChiTiet", detail);
+        params.append("Action", action); 
+        params.append("Detail", detail);
         
         if(finishTime) {
-            params.append("ThoiGianLamBai", finishTime);
+            params.append("Duration", finishTime);
         }
         if(fileData) {
             params.append("fileData", fileData);
